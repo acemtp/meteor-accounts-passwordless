@@ -59,3 +59,11 @@ Some optional extra steps:
 
 - (optional) ask the user his username and call `Meteor.setUsername` with the value given by the user
 - (optional) call `Meteor.logout()` to logout the user
+
+### Test the example locally on your computer
+
+- git clone https://github.com/efounders/meteor-accounts-passwordless.git
+- cd meteor-accounts-passwordless/example
+- meteor
+- then open a browser to [http://localhost:3000](http://localhost:3000)
+- since the email is not configured by default on your computer, the email (verification code) will be displayed on the server console.
