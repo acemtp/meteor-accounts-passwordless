@@ -7,7 +7,7 @@ Package.describe({
 });
 
 Package.onUse(function(api) {
-  api.versionsFrom('0.9.0');
+  api.versionsFrom('METEOR@0.9.2');
 
   api.use(['tracker', 'underscore', 'templating', 'session'], 'client');
   api.use('email', 'server');
