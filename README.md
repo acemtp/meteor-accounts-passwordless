@@ -54,4 +54,5 @@ Here is the minimal workflow you have to implement:
 - ask the user his verification code sent by email
 - call `Meteor.loginWithPasswordless` with the verification code
 
-To logout the user, just call `Meteor.logout()`.
+- (optional) ask the user his username and call `Meteor.setUsername` with value value given by the user
+- (optional) call `Meteor.logout()` to logout the user
