@@ -1,32 +1,57 @@
-meteor-accounts-passwordless
-=====================
+# meteor-accounts-passwordless
 
-Passwords are broken. Passwordless is an open source package for token-based one-time password (OTPW) authentication, which is faster to deploy, better for your users, and more secure. Curious how it works?
+Passwords are broken. Passwordless is an open source Meteor package for token-based one-time password (OTPW) authentication, which is faster to deploy, better for your users, and more secure.
 
-Install
--------
+## Install
+
 ```
-meteor add acemtp:
+meteor add acemtp:accounts-passwordless
 ```
 
-Usage
------
+## Usage
 
-This package is almost isomorphic. It has only one function `extractMeta()` that returns an object containing, if found a `title`, `description`, `image`, `url`.
 
-**On the client**, the function does a `Meteor.call()` because only the server can get the content of the url. It's async because there's no fiber on the client. So you have to pass a callback to get the answer:
+You have 2 ways to use it, the highlevel that use the default ui or the low level to plug on your own application.
 
-    extractMeta('http://efounders.co', function (err, res) { console.log(res); });
+### Default UI
 
-**On the server**, the function is sync and returns the meta object:
+This is the easiest way to use the package. Add this line in a template and voila:
 
-    console.log(extractMeta('http://efounders.co'));
+    {{> loginPasswordless}}
 
-Both example will display something like:
+This is how it's done on the [live demo](http://passwordless.meteor.com). The source code of this example is on [Github](https://github.com/efounders/meteor-accounts-passwordless/tree/master/example).
 
-    {
-      description: 'eFounders is a startup Studio. Together with entrepreneurs, we turn unique ideas into successful companies. We act as the perfect co-founder to build strong and independent startups. ',
-      title: 'eFounders • Startup Studio',
-      image: 'http://efounders.co/public/images/630_homepage.jpg',
-      url: 'http://efounders.co/'
-    }
+### Low Level API
+
+If the default layout doesn't fit your needs, you can call the low level api. You can copy how it's made on the [default ui source file](https://github.com/efounders/meteor-accounts-passwordless/blob/master/accounts-passwordless-ui.js).
+
+Basically, there're 3 methods you have to call on the client:
+
+#### Meteor.sendVerificationCode(selector, callback)
+
+Call this one will send the verification code to the user.
+
+The `selector` can be the email of the user or his username. If you pass the username, the accounts must already exists to find the associate email and send the email.
+
+The callback has 2 parameters, `error` and `result`.
+
+#### Meteor.loginWithPasswordless(options, callback)
+
+options is an object that must contain the `code` entered by the user after he read the email. It can also contains `selector` that was the selector used at the `Meteor.sendVerificationCode` step.
+
+That's all you need to log in a user with passwordless.
+
+#### Meteor.setUsername(username, callback)
+
+You don't have to call this function. It's just an utility function to set the username of the logged user, in case you don't want to display the user email.
+
+#### Workflow
+
+Here is the minimal workflow you have to implement:
+
+- ask the user his email or username
+- call `Meteor.sendVerificationCode` with the value given by the user
+- ask the user his verification code sent by email
+- call `Meteor.loginWithPasswordless` with the verification code
+
+To logout the user, just call `Meteor.logout()`.
