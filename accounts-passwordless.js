@@ -6,10 +6,13 @@ if (Meteor.isClient) {
    * @param selector The email or username of the user
    * @param [callback]
    */
-  Meteor.sendVerificationCode = function (selector, callback) {
+  Meteor.sendVerificationCode = function (selector, options, callback) {
+    if (!callback && typeof options === 'function')
+      callback = options;
+
     // Save the selector in a Session so even if the client reloads, the selector is stored
     Session.set('accounts-passwordless.selector', selector);
-    Meteor.call('accounts-passwordless.sendVerificationCode', selector, callback);
+    Meteor.call('accounts-passwordless.sendVerificationCode', selector, options, callback);
   };
 
   /**
@@ -48,6 +51,7 @@ if (Meteor.isClient) {
 
 if(Meteor.isServer) {
 
+  Accounts.passwordless.zeroFill = false;
   Accounts.passwordless.emailTemplates = {
     from: "Meteor Accounts <no-reply@meteor.com>",
     siteName: Meteor.absoluteUrl().replace(/^https?:\/\//, '').replace(/\/$/, ''),
@@ -69,9 +73,10 @@ if(Meteor.isServer) {
   };
 
   Meteor.methods({
-    'accounts-passwordless.sendVerificationCode': function (selector) {
+    'accounts-passwordless.sendVerificationCode': function (selector, options) {
       check(selector, String);
-      Accounts.passwordless.sendVerificationCode(selector);
+      check(options, Match.Optional(Match.Any));
+      Accounts.passwordless.sendVerificationCode(selector, options);
     },
     'accounts-passwordless.setUsername': function (username) {
       check(username, String);
@@ -103,7 +108,7 @@ if(Meteor.isServer) {
    * Send a 4 digit verification code by email
    * @param selector The email or username of the user
    */
-  Accounts.passwordless.sendVerificationCode = function (selector) {
+  Accounts.passwordless.sendVerificationCode = function (selector, options) {
     var email;
     var user;
     if (selector.indexOf('@') === -1) {
@@ -118,6 +123,8 @@ if(Meteor.isServer) {
     }
 
     var code = Math.floor(Random.fraction() * 10000) + '';
+    if (Accounts.passwordless.zeroFill)
+      code = ('0000' + code).slice(-4);
 
     // Clear out existing codes
     codes.remove({ email: email });
@@ -129,7 +136,7 @@ if(Meteor.isServer) {
       to: email,
       from: Accounts.passwordless.emailTemplates.from,
       subject: Accounts.passwordless.emailTemplates.sendVerificationCode.subject(code),
-      text: Accounts.passwordless.emailTemplates.sendVerificationCode.text(user, code)
+      text: Accounts.passwordless.emailTemplates.sendVerificationCode.text(user, code, selector, options)
     });
   };
 
