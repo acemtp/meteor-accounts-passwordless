@@ -51,7 +51,6 @@ if (Meteor.isClient) {
 
 if(Meteor.isServer) {
 
-  Accounts.passwordless.zeroFill = false;
   Accounts.passwordless.emailTemplates = {
     from: "Meteor Accounts <no-reply@meteor.com>",
     siteName: Meteor.absoluteUrl().replace(/^https?:\/\//, '').replace(/\/$/, ''),
@@ -123,8 +122,8 @@ if(Meteor.isServer) {
     }
 
     var code = Math.floor(Random.fraction() * 10000) + '';
-    if (Accounts.passwordless.zeroFill)
-      code = ('0000' + code).slice(-4);
+    // force pin to 4 digits
+    code = ('0000' + code).slice(-4);
 
     // Clear out existing codes
     codes.remove({ email: email });
