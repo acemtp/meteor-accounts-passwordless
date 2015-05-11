@@ -1,6 +1,6 @@
 Package.describe({
   name: 'acemtp:accounts-passwordless',
-  version: '0.2.1',
+  version: '0.2.2',
   summary: 'Token-based one-time password (OTPW) authentication (nopassword, passwordless)',
   git: 'https://github.com/efounders/meteor-accounts-passwordless',
   documentation: 'README.md'

@@ -1,3 +1,6 @@
+// XXX: delay beteween retry == retry^2
+// XXX: overwrite code
+
 Accounts.passwordless = {};
 
 if (Meteor.isClient) {
@@ -125,11 +128,8 @@ if(Meteor.isServer) {
     // force pin to 4 digits
     code = ('0000' + code).slice(-4);
 
-    // Clear out existing codes
-    codes.remove({ email: email });
-
     // Generate a new code
-    codes.insert({ email: email, code: code });
+    codes.upsert({ email: email }, { $set: {code: code, nbTry: 0}});
 
     Email.send({
       to: email,
@@ -186,9 +186,24 @@ if(Meteor.isServer) {
       email = selector;
     }
 
-    var validCode = codes.findOne({ email: email, code: code });
-    if (!validCode) throw new Meteor.Error('Invalid verification code');
+    var validCode = codes.findOne({ email: email});
+    if (!validCode)
+      throw new Meteor.Error('Unknown email');
 
+    var now = new Date().getTime() / 1000;
+    var timeToWait;
+
+    if (validCode.lastTry) {
+      timeToWait = validCode.lastTry.getTime()/1000 + Math.pow(validCode.nbTry, 2);
+
+      if (timeToWait > now)
+        throw new Meteor.Error('You must wait ' + Math.ceil(timeToWait - now) + ' seconds');
+    }
+
+     if (validCode.code !== code) {
+      codes.update({email: email}, { $set: {lastTry: new Date()}, $inc: {nbTry: 1 }});
+      throw new Meteor.Error('Invalid verification code');
+    }
     // Clear the verification code after a succesful login.
     codes.remove({ email: email });
 
