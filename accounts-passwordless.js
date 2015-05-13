@@ -1,6 +1,3 @@
-// XXX: delay beteween retry == retry^2
-// XXX: overwrite code
-
 Accounts.passwordless = {};
 
 if (Meteor.isClient) {
@@ -129,7 +126,7 @@ if(Meteor.isServer) {
     code = ('0000' + code).slice(-4);
 
     // Generate a new code
-    codes.upsert({ email: email }, { $set: {code: code, nbTry: 0}});
+    codes.upsert({ email: email }, { $set: { code: code }});
 
     Email.send({
       to: email,
