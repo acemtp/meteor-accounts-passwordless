@@ -60,6 +60,63 @@ Some optional extra steps:
 - (optional) ask the user his username and call `Meteor.setUsername` with the value given by the user
 - (optional) call `Meteor.logout()` to logout the user
 
+#### Set a link in the email
+
+To set a link inside the email you can modifier the `emailTemplates` object to use custom texte and so add a link. Below you get an example:
+
+```javascript
+Meteor.startup(function () {
+
+  Accounts.passwordless.emailTemplates.sendVerificationCode = {
+    subject: function (code) {
+      return "Your verification code is " + code + " for " + Accounts.passwordless.emailTemplates.siteName;
+    },
+    text: function (user, code, selector, options) {
+
+      var greeting = (user && user.username) ? ("Hello " + user.username + ",") : "Hello,";
+
+      var loginURL = Meteor.absoluteUrl().replace(/^https?:\/\//, '').replace(/\/$/, '') + '/login/';
+      loginURL += encodeURIComponent(selector) + '/' + code;
+
+      if (options && options.length == 2) {
+        // options come from client and must be checked
+        check(options[0], String);
+        check(options[1], String);
+        loginURL +=  '/' + options[0] + '/' + options[1];
+      }
+
+      return greeting + "\n"
+        + "\n"
+        + "Your verification code is " + code + ".\n"
+        + "You can login directly by clicking this <a href='" + loginURL + "'>link</a>\n"
+        + "\n"
+        + "Thanks.\n";
+    }
+  };
+});
+```
+
+After you have to set a root to get email/username and code, to login the user. Look example code below for an example with iron:router
+
+```
+Router.route('/login/:selector/:code', function () {
+  //
+  var options = {
+    code: this.params.code,
+    selector: decodeURIComponent(this.params.selector))
+  };
+  
+  Meteor.loginWithPasswordless(options, function (error, result) {
+      if (error) {
+        console.error(error);
+      } else {
+        // redirect user to your main page.
+        Router.go('dashboard');
+      }
+    });
+});
+```
+
 ### Test the example locally on your computer
 
 - git clone https://github.com/efounders/meteor-accounts-passwordless.git
