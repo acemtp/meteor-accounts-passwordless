@@ -103,7 +103,7 @@ Router.route('/login/:selector/:code', function () {
   //
   var options = {
     code: this.params.code,
-    selector: decodeURIComponent(this.params.selector))
+    selector: decodeURIComponent(this.params.selector)
   };
   
   Meteor.loginWithPasswordless(options, function (error, result) {
