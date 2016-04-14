@@ -103,6 +103,31 @@ if(Meteor.isServer) {
 
   var codes = new Meteor.Collection('meteor_accounts_passwordless');
 
+  /*
+   * Generate a 4 digit verification code
+   * @param email The email of the user
+   */
+  
+  Accounts.passwordless.generateVerificationCode = function ( email ) {
+
+    var code = Math.floor( Random.fraction() * 10000 ) + '';
+     
+    // force pin to 4 digits
+    code = ( '0000' + code ).slice( -4 );
+
+    // Generate a new code
+    codes.upsert( {
+      email: email
+      }, {
+      $set: {
+        code: code
+      }
+    } );
+
+    return code;
+
+  };
+
   /**
    * Send a 4 digit verification code by email
    * @param selector The email or username of the user
@@ -121,12 +146,7 @@ if(Meteor.isServer) {
       email = selector;
     }
 
-    var code = Math.floor(Random.fraction() * 10000) + '';
-    // force pin to 4 digits
-    code = ('0000' + code).slice(-4);
-
-    // Generate a new code
-    codes.upsert({ email: email }, { $set: { code: code }});
+    var code = Accounts.passwordless.generateVerificationCode( email );
 
     Email.send({
       to: email,
